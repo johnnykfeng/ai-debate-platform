@@ -1,22 +1,32 @@
-import requests
+import asyncio
+import aiohttp
 
 base_url = "http://localhost:8000"
 
 test_prompt = {
-    "prompt": "Explain the theory of relativity in simple terms."
+    "prompt": "Create a limerick about a cat."
 }
 
-def test_endpoint(endpoint: str):
+
+async def test_endpoint(session, endpoint: str):
     try:
-        response = requests.post(f"{base_url}/{endpoint}", json=test_prompt)
-        print(f"--- {endpoint.upper()} Response ---")
-        print(response.status_code)
-        print(response.json())
-        print("\n")
+        async with session.post(f"{base_url}/{endpoint}", json=test_prompt) as response:
+            result = await response.json()
+            print(f"--- {endpoint.upper()} Response ---")
+            print(response.status)
+            print(result)
+            print("\n")
     except Exception as e:
         print(f"Error testing {endpoint}: {e}")
 
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        await asyncio.gather(
+            test_endpoint(session, "gpt"),
+            test_endpoint(session, "gemini"),
+            test_endpoint(session, "claude")
+        )
+
 if __name__ == "__main__":
-    # test_endpoint("gpt")
-    # test_endpoint("gemini")
-    test_endpoint("claude")
+    asyncio.run(main())
